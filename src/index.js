@@ -1,7 +1,8 @@
 const CronService = require('./Services/CronService');
 
+
 try {
   CronService.schedule();
-} catch (error) {
+} catch (err) {
   console.log(err);
 }

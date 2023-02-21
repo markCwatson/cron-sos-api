@@ -26,7 +26,7 @@ class SosService {
     req.end();
   };
 
-  // untested
+  // need code which is obtained from manual authorization with sos
   static getAccessToken(id, secret, code, callback) {
     const options = {
       host: 'api.sosinventory.com',
@@ -79,7 +79,6 @@ class SosService {
   }
 
   static getShippingList(token, callback) {
-    console.log('getShippingList', token);
     const options = {
       host: 'api.sosinventory.com',
       path: '/api/v2/shipment',

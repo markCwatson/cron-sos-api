@@ -1,8 +1,20 @@
 module.exports = {
   CRON: [
     {
-      SCHEDULE: '0/30 * * * * *',
-      JOB_CLASS: 'CronSosService',
+      SCHEDULE: '* * * * * *',
+      JOB_CLASS: 'CronSosAuthService',
+      OPTIONS: {
+        runOnce: true,
+      }
+    },
+    {
+      SCHEDULE: '25 * * * * *',
+      JOB_CLASS: 'CronSosReadService',
+      OPTIONS: null,
+    },
+    {
+      SCHEDULE: '*/2 * * * *',
+      JOB_CLASS: 'CronSosRenewService',
       OPTIONS: null,
     },
   ],
