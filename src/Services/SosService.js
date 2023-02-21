@@ -78,7 +78,7 @@ class SosService {
     );
   }
 
-  static getShippingList(token, callback) {
+  static shipmentQuery(token, callback) {
     const options = {
       host: 'api.sosinventory.com',
       path: '/api/v2/shipment',
