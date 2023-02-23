@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  sos-database:
+    image: mongo:4.4.8
+    container_name: sos-database
+    ports:
+      - 27017:27017
+    volumes:
+      - database_volume:/data/db
+    environment:
+      - MONGO_DB_NAME=sos-database
+      - MONGO_USERNAME=$MONGO_USERNAME
+      - MONGO_PASSWORD=$MONGO_PASSWORD
+      - MONGO_HOST=$MONGO_HOST
+
+  sos:
+    build:
+      context: app
+      dockerfile: docker/Dockerfile.local
+    container_name: sos
+    environment:
+      - SOS_APP_CLIENT_ID=$SOS_APP_CLIENT_ID
+      - SOS_APP_CLIENT_SECRET=$SOS_APP_CLIENT_SECRET
+      - SOS_CODE=$SOS_CODE
+    ports:
+      - 9229:9229
+    volumes:
+      - ./app:/app
+      - /app/node_modules
+    depends_on:
+      - sos-database
+
+volumes:
+  database_volume:

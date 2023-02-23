@@ -1,25 +1,27 @@
 const fs = require('fs');
 
-const getToken = (type) => {
-  let access_token = null;
-  try {
-    const data = fs.readFileSync(`./tokens/${type}.txt`, 'utf8');
-    access_token = data.replace(/[\r\n]+/g, '');
-  } catch (err) {
-    console.error(err);
-  } finally {
-    return access_token;
+class SosRepository {
+  static getToken(type) {
+    let access_token = null;
+    try {
+      const data = fs.readFileSync(`./tokens/${type}.txt`, 'utf8');
+      access_token = data.replace(/[\r\n]+/g, '');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      return access_token;
+    }
   }
-}
 
-module.exports = {
-  getAccessToken() {
-    return getToken('access_token');
-  },
-  getRefreshToken() {
-    return getToken('refresh_token');
-  },
-  updateTokens(data) {
+  static getAccessToken() {
+    return SosRepository.getToken('access_token');
+  }
+
+  static getRefreshToken() {
+    return SosRepository.getToken('refresh_token');
+  }
+
+  static updateTokens(data) {
     if (!data) {
       console.error('No data to update!');
       return;
@@ -38,4 +40,6 @@ module.exports = {
       }
     })
   }
-};
+}
+
+module.exports = SosRepository;
