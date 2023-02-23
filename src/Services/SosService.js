@@ -27,7 +27,7 @@ class SosService {
   };
 
   // need code which is obtained from manual authorization with sos
-  static getAccessToken(id, secret, code, callback) {
+  static getAccessToken( { id, secret, code }, callback) {
     const options = {
       host: 'api.sosinventory.com',
       path: '/oauth2/token',
@@ -42,7 +42,7 @@ class SosService {
       client_id: id,
       client_secret: secret,
       code: code,
-      redirect_uri: 'https://www.google.com'
+      redirect_uri: 'https://www.google.com/'
     };
 
     SosService.sendHttpRequest(

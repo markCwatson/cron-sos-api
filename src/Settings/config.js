@@ -13,7 +13,7 @@ module.exports = {
       OPTIONS: null,
     },
     {
-      SCHEDULE: '*/2 * * * *',
+      SCHEDULE: '0 0 15 */2 0',
       JOB_CLASS: 'CronSosRenewService',
       OPTIONS: null,
     },
