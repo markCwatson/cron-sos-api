@@ -4,11 +4,15 @@ const SosRepository = require('../../Repository/SosRepository');
 class CronSosReadService {
   static async execute(options) {
     console.log('Reading from SOS ...');
-    const access_token = await SosRepository.getAccessToken();
     try {
-      SosService.shipmentQuery(access_token, (data) => {
+      const access_token = await SosRepository.getAccessToken();
+      // \todo check access_token
+      const data = await SosService.shipmentQuery(access_token);
+      if (data) {
         CronSosReadService.displaySosData(data);
-      });
+        return;
+      }
+      console.log('No shipment data');
     } catch (err) {
       console.error(err);
     }

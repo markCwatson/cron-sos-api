@@ -2,32 +2,33 @@ const https = require('https');
 const querystring = require('querystring');
 
 class SosService {
-  static sendHttpRequest(options, requestBody, onResult) {
-    let req = https.request(options, (res) => {
-      let output = '';
+  static sendHttpRequest(options, requestBody = null) {
+    return new Promise((resolve, reject) => {
+      let req = https.request(options, (res) => {
+        let output = '';
 
-      res.on('data', (chunk) => {
-        output += chunk;
+        res.on('data', (chunk) => {
+          output += chunk;
+        });
+
+        res.on('end', () => {
+          resolve(output);
+        });
       });
 
-      res.on('end', () => {
-        onResult(output);
+      req.on('error', (err) => {
+        reject(err);
       });
+
+      if (requestBody) {
+        req.write(querystring.stringify(requestBody));
+      }
+
+      req.end();
     });
+  }
 
-    req.on('error', (err) => {
-      console.error('error: ' + err.message);
-    });
-
-    if (requestBody) {
-      req.write(querystring.stringify(requestBody));
-    }
-
-    req.end();
-  };
-
-  // need code which is obtained from manual authorization with sos
-  static getAccessToken( { id, secret, code }, callback) {
+  static async getTokensWithCode({ id, secret, code }) {
     const options = {
       host: 'api.sosinventory.com',
       path: '/oauth2/token',
@@ -45,16 +46,15 @@ class SosService {
       redirect_uri: 'https://www.google.com/'
     };
 
-    SosService.sendHttpRequest(
-      options,
-      requestBody,
-      (data) => {
-        callback(data);
-      }
-    );
+    try {
+      const data = await SosService.sendHttpRequest(options, requestBody);
+      return data;
+    } catch (err) {
+      console.error('error: ' + err.message);
+    }
   }
 
-  static refresh(refreshToken, callback) {
+  static async refresh(refreshToken) {
     const options = {
       host: 'api.sosinventory.com',
       path: '/oauth2/token',
@@ -69,16 +69,15 @@ class SosService {
       refresh_token: refreshToken
     };
 
-    SosService.sendHttpRequest(
-      options,
-      requestBody,
-      (data) => {
-        callback(data);
-      }
-    );
+    try {
+      const data = await SosService.sendHttpRequest(options, requestBody);
+      return data;
+    } catch (err) {
+      console.error('error: ' + err.message);
+    }
   }
 
-  static shipmentQuery(token, callback) {
+  static async shipmentQuery(token) {
     const options = {
       host: 'api.sosinventory.com',
       path: '/api/v2/shipment',
@@ -88,13 +87,12 @@ class SosService {
       }
     };
 
-    SosService.sendHttpRequest(
-      options,
-      null,
-      (data) => {
-        callback(data);
-      }
-    );
+    try {
+      const data = await SosService.sendHttpRequest(options);
+      return data;
+    } catch (err) {
+      console.error('error: ' + err.message);
+    }
   }
 }
 

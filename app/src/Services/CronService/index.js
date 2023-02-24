@@ -12,8 +12,8 @@ class CronService {
         let module;
         try {
           module = require(filePath);
-        } catch (error) {
-          console.error(`Error loading module ${filePath}: ${error}`);
+        } catch (err) {
+          throw new Error(`Error loading module ${filePath}: ${err}`);
         }
         await module.execute(OPTIONS);
         if (OPTIONS?.runOnce) {
