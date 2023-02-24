@@ -1,9 +1,6 @@
 ## SOS Query App
 Makes queries to SOS - an inventory management system - through the SOS API.
 
-## Note
-In the process of moving the tokens over to the mongoDB database. Currently they are stored in `app/tokens/*.txt` files.
-
 ## Precursor
 You must have a `.env` file at the root of this project with the following contents. You need to get the SOS client ID, secret, and code from SOS (see below). The mongo username, password, and name can be anything.
 
