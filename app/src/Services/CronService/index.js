@@ -9,13 +9,20 @@ class CronService {
     CRON.map(({ SCHEDULE, JOB_CLASS, OPTIONS }) => {
       const job = cron.schedule(SCHEDULE, async () => {
         const filePath = resolve(__dirname, `${JOB_CLASS}.js`);
-        const module = require(filePath);
+        let module;
+        try {
+          module = require(filePath);
+        } catch (error) {
+          console.error(`Error loading module ${filePath}: ${error}`);
+        }
         await module.execute(OPTIONS);
         if (OPTIONS?.runOnce) {
+          console.log(`Stopping ${JOB_CLASS}.`);
           job.stop();
         }
       })
     });
+    console.log('Cron jobs scheduled!');
   }
 }
 

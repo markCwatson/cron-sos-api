@@ -14,6 +14,7 @@ class CronSosAuthService {
     try {
       SosService.getAccessToken(envs, (data) => {
         SosRepository.updateTokens(data);
+        console.log('Updated tokens', data);
       });
     } catch (err) {
       console.error(err);
