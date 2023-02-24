@@ -4,7 +4,9 @@ const SosRepository = require('../../Repository/SosRepository');
 class CronSosAuthService {
   static async execute(options) {
     if (CronSosAuthService.running) {
-      console.log('CronSosAuthService running');
+      // Using this flag prevents the edge-case where CronSosAuthService is executed
+      // more than once because the first execution has not completed before
+      // the next schedule comes arond.
       return;
     }
 

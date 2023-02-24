@@ -50,7 +50,7 @@ class SosService {
       const data = await SosService.sendHttpRequest(options, requestBody);
       return data;
     } catch (err) {
-      console.error('error: ' + err.message);
+      throw new Error(err);
     }
   }
 
@@ -73,7 +73,7 @@ class SosService {
       const data = await SosService.sendHttpRequest(options, requestBody);
       return data;
     } catch (err) {
-      console.error('error: ' + err.message);
+      throw new Error(err);
     }
   }
 
@@ -91,7 +91,7 @@ class SosService {
       const data = await SosService.sendHttpRequest(options);
       return data;
     } catch (err) {
-      console.error('error: ' + err.message);
+      throw new Error(err);
     }
   }
 }
