@@ -6,7 +6,7 @@ class CronSosRenewService {
     console.log('Renewing SOS tokens...');
     try {
       const refresh_token = await SosRepository.getRefreshToken();
-      const data = SosService.refresh(refresh_token);
+      const data = await SosService.refresh(refresh_token);
       if (JSON.parse(data).hasOwnProperty('access_token')) {
         SosRepository.updateTokens(data);
         return;
