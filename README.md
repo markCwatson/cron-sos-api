@@ -1,8 +1,8 @@
 ## SOS Query App
 Makes queries to SOS - an inventory management system - through the SOS API.
 
-## Precursor
-You must have a `.env` file at the root of this project with the following contents. You need to get the SOS client ID and client secret. The mongo username, password, and name can be anything.
+## Environment variables
+You must have a `.env` file at the root of this project with the following contents. You need to get the SOS client ID and client secret from the [SOS developer portal](https://developer.sosinventory.com/home). One you have an SOS dev account, login and click the "Register your applications" button. Copy/paste the SOS client ID and secret into a `.env` file. The mongo username, password, and name can be anything.
 
 ```
 SOS_APP_CLIENT_ID=
@@ -12,10 +12,8 @@ MONGO_PASSWORD=
 MONGO_DB_NAME=
 ```
 
-## Obtaining the SOS_CODE
-Create a login at `https://developer.sosinventory.com/` using the "Register your applications" tile. While logged in to above, register an application to obtain the Client ID and Secret.
-
-Use Chrome to make a call to the API: Enter `https://api.sosinventory.com/oauth2/authorize?response_type=code&client_id=[client id]&redirect_uri=https://www.google.com/` replacing [client id] with your above collected Client ID in the address bar of the browser.  When you press enter, the system will have you log into your account.  Upon logging in, the address bar will then reflect your authorization code. Copy this code for use later.
+## Obtaining the SOS code
+From step 1 [here](https://developer.sosinventory.com/apidoc/Authentication): in Chrome, enter the following url: `https://api.sosinventory.com/oauth2/authorize?response_type=code&client_id=[client id]&redirect_uri=https://www.google.com/` replacing [client id] with your above collected Client ID in the address bar of the browser.  When you press enter, the system will have you log into your account.  Upon logging in, the address bar will then reflect your authorization code. Copy this code for use later.
 
 ## To build Docker image and run container
 Build the required Docker images by running the following commands inside the `/app` folder.
@@ -30,7 +28,7 @@ Then run the app using
 docker-compose up app
 ```
 
-## Initial SOS code
+## Convert SOS code to auth tokens
 The SOS code must be obtained manually first (see above). When you have this, open a shell into the running `app` container.
 
 ```
