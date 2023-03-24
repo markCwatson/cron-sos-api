@@ -1,59 +1,76 @@
 const Repository = require('../Repository');
 
 class SosRepository {
-  static async getToken(type) {
+  // Create or replace a document in the SOS repository
+  // There can only ever be one document.
+  // Returns document if successful, null if not
+  static async create(data) {
     try {
       const mongo = await Repository.getInstance();
-      const token_doc = await mongo.db.collection('tokens').findOne({ type });
-      if (!token_doc) {
-        throw new Error(`No ${type} documents!`);
-      }
-      return token_doc.token;
-    } catch (err) {
-      throw new Error(err);
-    }
-  }
-
-  static async updateToken(type, data) {
-    try {
-      const mongo = await Repository.getInstance();
-      const update = await mongo.db.collection('tokens').updateOne(
-        { type },
+      const { value } = await mongo.db.collection('sosTokens').findOneAndReplace(
+        { _id: { $exists: true } },
         {
-          $set: {
-            token: data,
-            updatedAt: new Date(Date.now()),
-          },
+          ...data,
+          updatedAt: new Date(Date.now()),
         },
-        { upsert: true },
+        {
+          upsert: true,
+          returnDocument: 'after',
+        },
       );
-      return update;
+
+      return value;
     } catch (err) {
-      throw new Error(err);
+      throw new Error(err.message);
     }
   }
 
-  static updateTokens(data) {
-    if (!data) {
-      throw new Error('No data to update!');
+  // Select an access token defined by the `type` parameter
+  // Returns token if successful, undefined if invalid type, null if document does not exist
+  static async select(type) {
+    try {
+      const mongo = await Repository.getInstance();
+      const document = await mongo.db
+        .collection('sosTokens')
+        .findOne({ _id: { $exists: true } });
+      return document ? document[type] : null;
+    } catch (err) {
+      throw new Error(err.message);
     }
-
-    const parsed_data = JSON.parse(data);
-    const token_types = [ 'access_token', 'refresh_token' ];
-    token_types.forEach(async (token_type) => {
-      if (parsed_data[token_type]) {
-        console.log(`writing "${token_type}: ${parsed_data[token_type]}" to document`);
-        await SosRepository.updateToken(token_type, parsed_data[token_type]);
-      }
-    })
   }
 
-  static getAccessToken() {
-    return SosRepository.getToken('access_token');
+  // Replaces the SOS token document with `data`
+  // Returns updated document if successful, null if not
+  static async update(data) {
+    try {
+      const mongo = await Repository.getInstance();
+      const { value } = await mongo.db.collection('sosTokens').findOneAndReplace(
+        { _id: { $exists: true } },
+        {
+          ...data,
+          updatedAt: new Date(Date.now()),
+        },
+        {
+          upsert: false,
+          returnDocument: 'after',
+        },
+      );
+      return value;
+    } catch (err) {
+      throw new Error(err.message);
+    }
   }
 
-  static getRefreshToken() {
-    return SosRepository.getToken('refresh_token');
+  // Should return 0 when no document was created, then always 1 after
+  static async getCount() {
+    try {
+      const mongo = await Repository.getInstance();
+      return mongo.db
+        .collection('sosTokens')
+        .countDocuments();
+    } catch (err) {
+      throw new Error(err.message);
+    }
   }
 }
 

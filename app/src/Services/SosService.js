@@ -1,159 +1,105 @@
-const https = require('https');
-const querystring = require('querystring');
+const querystring = require("querystring");
+const axios = require("axios");
+const SosRepository = require("../Repository/SosRepository");
 
 class SosService {
-  static sendHttpRequest(options, requestBody = null) {
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        let output = '';
-
-        res.on('data', (chunk) => {
-          output += chunk;
-        });
-
-        res.on('end', () => {
-          resolve(output);
-        });
-      });
-
-      req.on('error', (err) => {
-        reject(err);
-      });
-
-      if (requestBody) {
-        req.write(querystring.stringify(requestBody));
-      }
-
-      req.end();
+  static async convertCode(code) {
+    const data = await SosService.oauthHandler({
+      grant_type: "authorization_code",
+      client_id: process.env.SOS_APP_CLIENT_ID,
+      client_secret: process.env.SOS_APP_CLIENT_SECRET,
+      code,
+      redirect_uri: "https://www.google.com/", // must be same url used when code was obtained
     });
+
+    if (!SosService.validateKeys(data)) {
+      return false;
+    }
+
+    const result = await SosRepository.create(data);
+    if (result) {
+      return true;
+    }
+    return false;
   }
 
-  static async queryHandler({ path, token }) {
+  static async refreshTokens() {
+    const token = await SosRepository.select("refresh_token");
+    if (!token) {
+      return false;
+    }
+
+    const data = await SosService.oauthHandler({
+      grant_type: "refresh_token",
+      refresh_token: token,
+    });
+
+    if (!SosService.validateKeys(data)) {
+      return false;
+    }
+
+    const result = await SosRepository.update(data);
+    if (result) {
+      return true;
+    }
+    return false;
+  }
+
+  static async shipmentQuery() {
+    const token = await SosRepository.select("access_token");
+    const { data } = await SosService.queryHandler("api/v2/shipment", token);
+    return data;
+  }
+
+  /** @private */
+  static async queryHandler(path, token) {
     const options = {
-      host: 'api.sosinventory.com',
-      path,
-      method: 'GET',
+      url: `https://api.sosinventory.com/${path}`,
+      method: "GET",
       headers: {
-        'Authorization': `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     };
 
-    // Prevent race conditions on SOS access
-    await SosService.semaphore.acquire();
-
     try {
-      const data = await SosService.sendHttpRequest(options);
+      const data = await axios(options);
       return data;
     } catch (err) {
-      throw new Error(`Failed to handle query: ${err.message}`);
-    } finally {
-      SosService.semaphore.release();
+      throw new Error(err.message);
     }
   }
 
+  /** @private */
   static async oauthHandler(requestBody) {
     const options = {
-      host: 'api.sosinventory.com',
-      path: '/oauth2/token',
-      method: 'POST',
+      url: "https://api.sosinventory.com/oauth2/token",
+      method: "POST",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      data: querystring.stringify(requestBody),
     };
 
-    // Prevent race conditions on SOS access
-    await SosService.semaphore.acquire();
-
     try {
-      const data = await SosService.sendHttpRequest(options, requestBody);
+      const { data } = await axios(options);
       return data;
     } catch (err) {
-      throw new Error(err);
-    } finally {
-      SosService.semaphore.release();
+      throw new Error(err.message);
     }
   }
 
-  static async getTokensWithCode({ id, secret, code }) {
-    const data = await SosService.oauthHandler({
-      grant_type: 'authorization_code',
-      client_id: id,
-      client_secret: secret,
-      code: code,
-      redirect_uri: 'https://www.google.com/'
-    });
-    return data;
-  }
-
-  static async refresh(refreshToken) {
-    const data = await SosService.oauthHandler({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken
-    });
-    return data;
-  }
-
-  static async shipmentQuery(token) {
-    const data = await SosService.queryHandler({
-      path: '/api/v2/shipment',
-      token
-    });
-    return data;
-  }
-
-  static async invoiceQuery(token) {
-    const data = await SosService.queryHandler({
-      path: '/api/v2/invoice',
-      token
-    });
-    return data;
-  }
-
-  static async customerQuery(token) {
-    const data = await SosService.queryHandler({
-      path: '/api/v2/customer',
-      token
-    });
-    return data;
-  }
-
-  static async serializedInventoryQuery(token) {
-    const data = await SosService.queryHandler({
-      path: '/api/v2/serial',
-      token
-    });
-    return data;
+  /** @private */
+  static validateKeys(parsedData) {
+    const requiredKeys = [
+      "access_token",
+      "token_type",
+      "expires_in",
+      "refresh_token",
+    ];
+    return requiredKeys.every((key) =>
+      Object.prototype.hasOwnProperty.call(parsedData, key)
+    );
   }
 }
-
-SosService.Semaphore = class Semaphore {
-  constructor(count) {
-    this.count = count;
-    this.waiting = [];
-  }
-
-  async acquire() {
-    if (this.count > 0) {
-      this.count--;
-    } else {
-      await new Promise((resolve) => {
-        this.waiting.push(resolve);
-      });
-      return this.acquire();
-    }
-  }
-
-  release() {
-    if (this.waiting.length > 0) {
-      const resolve = this.waiting.shift();
-      resolve();
-    } else {
-      this.count++;
-    }
-  }
-};
-
-// A global shared counting semaphore resource
-SosService.semaphore = new SosService.Semaphore(1);
 
 module.exports = SosService;
