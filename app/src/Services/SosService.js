@@ -47,7 +47,7 @@ class SosService {
 
   static async shipmentQuery() {
     const token = await SosRepository.select("access_token");
-    const { data } = await SosService.queryHandler("api/v2/shipment", token);
+    const data = await SosService.queryHandler("api/v2/shipment", token);
     return data;
   }
 
@@ -62,7 +62,7 @@ class SosService {
     };
 
     try {
-      const data = await axios(options);
+      const { data } = await axios(options);
       return data;
     } catch (err) {
       throw new Error(err.message);
